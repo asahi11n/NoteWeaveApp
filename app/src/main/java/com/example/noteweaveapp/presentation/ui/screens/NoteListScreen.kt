@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -20,10 +21,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.noteweaveapp.domain.model.Note
+import com.example.noteweaveapp.presentation.ui.components.SortOptionSelector
+import com.example.noteweaveapp.presentation.ui.components.TagSelectorDialog
 import com.example.noteweaveapp.presentation.viewmodel.NoteListViewModel
 
 @Composable
@@ -33,6 +39,19 @@ fun NoteListScreen(
     onCreateNote: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showTagDialog by remember { mutableStateOf(false) }
+
+    if (showTagDialog) {
+        TagSelectorDialog(
+            tags = uiState.allTags,
+            selectedTagIds = uiState.selectedTagIds,
+            onTagToggle = { tagId, isSelected ->
+                viewModel.onTagFilterChanged(tagId, isSelected)
+            },
+            onDismiss = { showTagDialog = false },
+            onConfirm = { showTagDialog = false }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -55,6 +74,25 @@ fun NoteListScreen(
                 onValueChange = { viewModel.onSearchQueryChanged(it) },
                 label = { Text("Search") },
                 modifier = Modifier.fillMaxWidth()
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = { showTagDialog = true },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Tags (${uiState.selectedTagIds.size})")
+                }
+            }
+
+            SortOptionSelector(
+                selectedOption = uiState.sortBy,
+                onOptionSelected = { viewModel.onSortChanged(it) }
             )
 
             if (uiState.isLoading) {

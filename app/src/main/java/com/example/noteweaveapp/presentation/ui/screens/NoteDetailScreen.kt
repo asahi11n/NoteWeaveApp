@@ -91,6 +91,34 @@ fun NoteDetailScreen(
                             )
                         }
 
+                        if (state.relatedNotes.isNotEmpty()) {
+                            Text(
+                                text = "Related Notes",
+                                modifier = Modifier.padding(top = 24.dp),
+                                style = androidx.compose.material3.MaterialTheme.typography.titleMedium
+                            )
+                            state.relatedNotes.forEach { relatedNote ->
+                                androidx.compose.material3.Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp),
+                                    onClick = { onBackClick() }
+                                ) {
+                                    Column(modifier = Modifier.padding(12.dp)) {
+                                        Text(
+                                            text = relatedNote.title,
+                                            style = androidx.compose.material3.MaterialTheme.typography.titleSmall
+                                        )
+                                        Text(
+                                            text = relatedNote.content.take(60) + "...",
+                                            style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                                            maxLines = 1
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
                         Button(
                             onClick = { onEditClick(state.note.id) },
                             modifier = Modifier

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.noteweaveapp.domain.model.Note
 import com.example.noteweaveapp.domain.usecase.DeleteNoteUseCase
+import com.example.noteweaveapp.domain.usecase.GetAllTagsUseCase
 import com.example.noteweaveapp.domain.usecase.GetNotesUseCase
 import com.example.noteweaveapp.presentation.state.NoteListUiState
 import com.example.noteweaveapp.presentation.state.SortOption
@@ -15,14 +16,24 @@ import kotlinx.coroutines.launch
 
 class NoteListViewModel(
     private val getNotesUseCase: GetNotesUseCase,
-    private val deleteNoteUseCase: DeleteNoteUseCase
+    private val deleteNoteUseCase: DeleteNoteUseCase,
+    private val getAllTagsUseCase: GetAllTagsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NoteListUiState())
     val uiState: StateFlow<NoteListUiState> = _uiState.asStateFlow()
 
     init {
+        loadTags()
         loadNotes()
+    }
+
+    private fun loadTags() {
+        viewModelScope.launch {
+            getAllTagsUseCase().collectLatest { tags ->
+                _uiState.value = _uiState.value.copy(allTags = tags)
+            }
+        }
     }
 
     private fun loadNotes() {

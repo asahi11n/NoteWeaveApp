@@ -44,17 +44,15 @@ class MainActivity : ComponentActivity() {
                     val updateNoteUseCase = UpdateNoteUseCase(noteRepository, tagRepository)
                     val deleteNoteUseCase = DeleteNoteUseCase(noteRepository)
                     val getNoteByIdUseCase = GetNoteByIdUseCase(noteRepository)
-
-                    val listViewModel = ViewModelProvider.Factory.from(
-                        viewModelFactory { GetNotesUseCase(noteRepository) }
-                    ).create(NoteListViewModel::class.java)
+                    val getAllTagsUseCase = com.example.noteweaveapp.domain.usecase.GetAllTagsUseCase(tagRepository)
+                    val getRelatedNotesUseCase = com.example.noteweaveapp.domain.usecase.GetRelatedNotesUseCase(noteRepository)
 
                     val currentScreen = remember { mutableStateOf<Screen>(Screen.List) }
 
                     when (val screen = currentScreen.value) {
                         Screen.List -> {
                             NoteListScreen(
-                                viewModel = NoteListViewModel(getNotesUseCase, deleteNoteUseCase),
+                                viewModel = NoteListViewModel(getNotesUseCase, deleteNoteUseCase, getAllTagsUseCase),
                                 onNoteClick = { noteId ->
                                     currentScreen.value = Screen.Detail(noteId)
                                 },
@@ -65,7 +63,7 @@ class MainActivity : ComponentActivity() {
                         }
                         is Screen.Detail -> {
                             NoteDetailScreen(
-                                viewModel = NoteDetailViewModel(getNoteByIdUseCase),
+                                viewModel = NoteDetailViewModel(getNoteByIdUseCase, getNotesUseCase, getRelatedNotesUseCase),
                                 noteId = screen.noteId,
                                 onBackClick = {
                                     currentScreen.value = Screen.List
