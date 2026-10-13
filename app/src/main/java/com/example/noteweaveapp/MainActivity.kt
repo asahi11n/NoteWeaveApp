@@ -32,27 +32,27 @@ import com.example.noteweaveapp.presentation.viewmodel.NoteListViewModel
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val db = NoteWeaveDatabase.getInstance(this)
+        val noteRepository = NoteRepository(db.noteDao())
+        val tagRepository = TagRepository(db.tagDao())
+
+        val getNotesUseCase = GetNotesUseCase(noteRepository)
+        val createNoteUseCase = CreateNoteUseCase(noteRepository, tagRepository)
+        val updateNoteUseCase = UpdateNoteUseCase(noteRepository, tagRepository)
+        val deleteNoteUseCase = DeleteNoteUseCase(noteRepository)
+        val getNoteByIdUseCase = GetNoteByIdUseCase(noteRepository)
+        val getAllTagsUseCase = com.example.noteweaveapp.domain.usecase.GetAllTagsUseCase(tagRepository)
+        val getRelatedNotesUseCase = com.example.noteweaveapp.domain.usecase.GetRelatedNotesUseCase(noteRepository)
+        val aiProcessor = LocalNoteAiProcessor()
+        val generateSummaryUseCase = GenerateSummaryUseCase(aiProcessor)
+        val generateTagSuggestionsUseCase = GenerateTagSuggestionsUseCase(aiProcessor)
+
         setContent {
             NoteWeaveTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val db = NoteWeaveDatabase.getInstance(applicationContext)
-                    val noteRepository = NoteRepository(db.noteDao())
-                    val tagRepository = TagRepository(db.tagDao())
-
-                    val getNotesUseCase = GetNotesUseCase(noteRepository)
-                    val createNoteUseCase = CreateNoteUseCase(noteRepository, tagRepository)
-                    val updateNoteUseCase = UpdateNoteUseCase(noteRepository, tagRepository)
-                    val deleteNoteUseCase = DeleteNoteUseCase(noteRepository)
-                    val getNoteByIdUseCase = GetNoteByIdUseCase(noteRepository)
-                    val getAllTagsUseCase = com.example.noteweaveapp.domain.usecase.GetAllTagsUseCase(tagRepository)
-                    val getRelatedNotesUseCase = com.example.noteweaveapp.domain.usecase.GetRelatedNotesUseCase(noteRepository)
-                    val aiProcessor = LocalNoteAiProcessor()
-                    val generateSummaryUseCase = GenerateSummaryUseCase(aiProcessor)
-                    val generateTagSuggestionsUseCase = GenerateTagSuggestionsUseCase(aiProcessor)
-
                     val currentScreen = remember { mutableStateOf<Screen>(Screen.List) }
 
                     when (val screen = currentScreen.value) {
