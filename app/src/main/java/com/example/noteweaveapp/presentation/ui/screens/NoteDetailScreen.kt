@@ -1,6 +1,7 @@
 package com.example.noteweaveapp.presentation.ui.screens
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,10 +19,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.noteweaveapp.presentation.state.NoteDetailUiState
+import com.example.noteweaveapp.presentation.ui.components.AiSummaryProposalDialog
+import com.example.noteweaveapp.presentation.ui.components.AiTagsProposalDialog
 import com.example.noteweaveapp.presentation.viewmodel.NoteDetailViewModel
 
 @Composable
@@ -32,9 +38,42 @@ fun NoteDetailScreen(
     onEditClick: (Long) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showSummaryDialog by remember { mutableStateOf(false) }
+    var showTagsDialog by remember { mutableStateOf(false) }
 
     if (uiState is NoteDetailUiState.Loading) {
         viewModel.loadNote(noteId)
+    }
+
+    if (showSummaryDialog && uiState is NoteDetailUiState.Success) {
+        AiSummaryProposalDialog(
+            state = (uiState as NoteDetailUiState.Success).aiSummaryState,
+            onConfirm = { summary ->
+                viewModel.onSummaryAdopted(summary)
+                showSummaryDialog = false
+            },
+            onCancel = {
+                viewModel.onSummaryRejected()
+                showSummaryDialog = false
+            },
+            onRetry = { viewModel.onSummaryGenerate() }
+        )
+    }
+
+    if (showTagsDialog && uiState is NoteDetailUiState.Success) {
+        AiTagsProposalDialog(
+            state = (uiState as NoteDetailUiState.Success).aiTagsState,
+            suggestedTags = (uiState as NoteDetailUiState.Success).suggestedTags,
+            onConfirm = { tags ->
+                viewModel.onTagsAdopted(tags)
+                showTagsDialog = false
+            },
+            onCancel = {
+                viewModel.onTagsRejected()
+                showTagsDialog = false
+            },
+            onRetry = { viewModel.onTagsGenerate() }
+        )
     }
 
     Scaffold(
@@ -119,13 +158,27 @@ fun NoteDetailScreen(
                             }
                         }
 
-                        Button(
-                            onClick = { onEditClick(state.note.id) },
+                        Row(
                             modifier = Modifier
-                                .padding(top = 16.dp)
-                                .align(Alignment.Start)
+                                .fillMaxWidth()
+                                .padding(top = 16.dp),
+                            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
                         ) {
-                            Text("Edit")
+                            Button(onClick = { onEditClick(state.note.id) }) {
+                                Text("Edit")
+                            }
+                            Button(onClick = {
+                                viewModel.onSummaryGenerate()
+                                showSummaryDialog = true
+                            }) {
+                                Text("Summary")
+                            }
+                            Button(onClick = {
+                                viewModel.onTagsGenerate()
+                                showTagsDialog = true
+                            }) {
+                                Text("Tags")
+                            }
                         }
                     }
                 }
