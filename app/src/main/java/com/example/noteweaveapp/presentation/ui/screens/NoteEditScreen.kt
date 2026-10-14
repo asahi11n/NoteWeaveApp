@@ -1,5 +1,6 @@
 package com.example.noteweaveapp.presentation.ui.screens
 
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.noteweaveapp.presentation.viewmodel.NoteEditViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteEditScreen(
     viewModel: NoteEditViewModel,
@@ -60,21 +62,22 @@ fun NoteEditScreen(
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             } else {
-                TextField(
+                androidx.compose.material3.OutlinedTextField(
                     value = uiState.title,
                     onValueChange = { viewModel.onTitleChanged(it) },
                     label = { Text("Title") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
 
-                TextField(
+                androidx.compose.material3.OutlinedTextField(
                     value = uiState.content,
                     onValueChange = { viewModel.onContentChanged(it) },
                     label = { Text("Content") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp),
-                    minLines = 5
+                    minLines = 8
                 )
 
                 if (uiState.error != null) {

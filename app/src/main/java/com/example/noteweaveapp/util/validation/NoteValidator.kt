@@ -1,13 +1,8 @@
 package com.example.noteweaveapp.util.validation
 
 object NoteValidator {
-    fun isValidTitle(title: String): Boolean {
-        return title.trim().isNotEmpty()
-    }
-
-    fun isValidContent(content: String): Boolean {
-        return content.trim().isNotEmpty()
-    }
+    fun isValidTitle(title: String): Boolean = title.trim().isNotEmpty()
+    fun isValidContent(content: String): Boolean = content.trim().isNotEmpty()
 
     fun validateNote(title: String, content: String): ValidationResult {
         return when {

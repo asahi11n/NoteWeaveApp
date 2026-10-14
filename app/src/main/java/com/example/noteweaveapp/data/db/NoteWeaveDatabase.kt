@@ -11,11 +11,7 @@ import com.example.noteweaveapp.data.db.entity.NoteTagCrossRef
 import com.example.noteweaveapp.data.db.entity.TagEntity
 
 @Database(
-    entities = [
-        NoteEntity::class,
-        TagEntity::class,
-        NoteTagCrossRef::class
-    ],
+    entities = [NoteEntity::class, TagEntity::class, NoteTagCrossRef::class],
     version = 1,
     exportSchema = false
 )
@@ -24,21 +20,17 @@ abstract class NoteWeaveDatabase : RoomDatabase() {
     abstract fun tagDao(): TagDao
 
     companion object {
-        private var instance: NoteWeaveDatabase? = null
+        private var INSTANCE: NoteWeaveDatabase? = null
         private val LOCK = Any()
 
         fun getInstance(context: Context): NoteWeaveDatabase {
-            return instance ?: synchronized(LOCK) {
-                instance ?: buildDatabase(context).also { instance = it }
+            return INSTANCE ?: synchronized(LOCK) {
+                INSTANCE ?: Room.databaseBuilder(
+                    context.applicationContext,
+                    NoteWeaveDatabase::class.java,
+                    "notweave_database"
+                ).build().also { INSTANCE = it }
             }
-        }
-
-        private fun buildDatabase(context: Context): NoteWeaveDatabase {
-            return Room.databaseBuilder(
-                context.applicationContext,
-                NoteWeaveDatabase::class.java,
-                "noteweave_db"
-            ).build()
         }
     }
 }

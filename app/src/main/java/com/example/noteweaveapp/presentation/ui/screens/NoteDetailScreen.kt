@@ -1,5 +1,6 @@
 package com.example.noteweaveapp.presentation.ui.screens
 
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +31,7 @@ import com.example.noteweaveapp.presentation.ui.components.AiSummaryProposalDial
 import com.example.noteweaveapp.presentation.ui.components.AiTagsProposalDialog
 import com.example.noteweaveapp.presentation.viewmodel.NoteDetailViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteDetailScreen(
     viewModel: NoteDetailViewModel,

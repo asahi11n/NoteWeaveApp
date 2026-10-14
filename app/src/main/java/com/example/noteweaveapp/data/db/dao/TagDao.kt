@@ -3,21 +3,19 @@ package com.example.noteweaveapp.data.db.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
 import com.example.noteweaveapp.data.db.entity.TagEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TagDao {
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert
     suspend fun insert(tag: TagEntity): Long
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert
     suspend fun insertAll(tags: List<TagEntity>)
 
-    @Update
+    @androidx.room.Update
     suspend fun update(tag: TagEntity)
 
     @Delete
@@ -32,21 +30,32 @@ interface TagDao {
     @Query("SELECT * FROM tags WHERE name = :name")
     suspend fun getTagByName(name: String): TagEntity?
 
-    @Query("SELECT * FROM tags ORDER BY name ASC")
+    @Query("SELECT * FROM tags")
     fun getAllTagsFlow(): Flow<List<TagEntity>>
 
-    @Query("SELECT * FROM tags ORDER BY name ASC")
+    @Query("SELECT * FROM tags")
     suspend fun getAllTags(): List<TagEntity>
 
-    @Query("SELECT t.* FROM tags t INNER JOIN note_tag_cross_ref ntc ON t.id = ntc.tagId WHERE ntc.noteId = :noteId ORDER BY t.name ASC")
+    @Query("""
+        SELECT t.* FROM tags t
+        INNER JOIN note_tag_cross_ref ntcr ON t.id = ntcr.tagId
+        WHERE ntcr.noteId = :noteId
+    """)
     suspend fun getTagsForNote(noteId: Long): List<TagEntity>
 
-    @Query("SELECT t.* FROM tags t INNER JOIN note_tag_cross_ref ntc ON t.id = ntc.tagId WHERE ntc.noteId = :noteId ORDER BY t.name ASC")
+    @Query("""
+        SELECT t.* FROM tags t
+        INNER JOIN note_tag_cross_ref ntcr ON t.id = ntcr.tagId
+        WHERE ntcr.noteId = :noteId
+    """)
     fun getTagsForNoteFlow(noteId: Long): Flow<List<TagEntity>>
 
-    @Query("SELECT COUNT(*) FROM tags WHERE name = TRIM(:name)")
+    @Query("SELECT COUNT(*) FROM tags WHERE name = :name")
     suspend fun countByName(name: String): Int
 
-    @Query("SELECT COUNT(*) FROM note_tag_cross_ref WHERE tagId = :tagId")
+    @Query("""
+        SELECT COUNT(*) FROM note_tag_cross_ref
+        WHERE tagId = :tagId
+    """)
     suspend fun countNotesWithTag(tagId: Long): Int
 }

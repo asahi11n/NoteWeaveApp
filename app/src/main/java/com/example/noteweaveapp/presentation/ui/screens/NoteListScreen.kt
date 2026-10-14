@@ -1,15 +1,18 @@
 package com.example.noteweaveapp.presentation.ui.screens
 
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
@@ -32,6 +35,7 @@ import com.example.noteweaveapp.presentation.ui.components.SortOptionSelector
 import com.example.noteweaveapp.presentation.ui.components.TagSelectorDialog
 import com.example.noteweaveapp.presentation.viewmodel.NoteListViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteListScreen(
     viewModel: NoteListViewModel,
@@ -139,28 +143,56 @@ fun NoteListItem(
     androidx.compose.material3.Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp),
+            .padding(8.dp),
         onClick = onNoteClick
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = note.title, style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+            Text(
+                text = note.title,
+                style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
+                maxLines = 1
+            )
             Text(
                 text = note.content.take(100) + if (note.content.length > 100) "..." else "",
                 style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
-                maxLines = 2
+                maxLines = 2,
+                modifier = Modifier.padding(top = 8.dp)
             )
+
+            if (note.tags.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    note.tags.take(3).forEach { tag ->
+                        androidx.compose.material3.AssistChip(
+                            onClick = {},
+                            label = { Text(tag.name, style = androidx.compose.material3.MaterialTheme.typography.labelSmall) },
+                            modifier = Modifier.height(28.dp)
+                        )
+                    }
+                    if (note.tags.size > 3) {
+                        Text(
+                            "+${note.tags.size - 3}",
+                            style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                            modifier = Modifier
+                                .align(androidx.compose.ui.Alignment.CenterVertically)
+                                .padding(start = 4.dp)
+                        )
+                    }
+                }
+            }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(top = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
             ) {
-                Text(
-                    text = note.tags.joinToString(", ") { it.name },
-                    style = androidx.compose.material3.MaterialTheme.typography.labelSmall
-                )
-                androidx.compose.material3.TextButton(onClick = onDelete) {
-                    Text("Delete")
+                androidx.compose.material3.TextButton(onClick = onDelete, modifier = Modifier.height(32.dp)) {
+                    Text("Delete", style = androidx.compose.material3.MaterialTheme.typography.labelSmall)
                 }
             }
         }
