@@ -15,9 +15,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.noteweaveapp.presentation.state.NoteDetailUiEvent
 import com.example.noteweaveapp.presentation.state.NoteDetailUiState
 import com.example.noteweaveapp.presentation.ui.components.AiSummaryProposalDialog
 import com.example.noteweaveapp.presentation.ui.components.AiTagsProposalDialog
@@ -41,6 +45,15 @@ fun NoteDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showSummaryDialog by remember { mutableStateOf(false) }
     var showTagsDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is NoteDetailUiEvent.ShowMessage -> snackbarHostState.showSnackbar(event.message)
+            }
+        }
+    }
 
     if (showSummaryDialog && uiState is NoteDetailUiState.Success) {
         AiSummaryProposalDialog(
@@ -74,6 +87,7 @@ fun NoteDetailScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Note Detail") },

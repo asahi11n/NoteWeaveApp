@@ -26,6 +26,9 @@ class NoteListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(NoteListUiState())
     val uiState: StateFlow<NoteListUiState> = _uiState.asStateFlow()
 
+    // 検索・タグ・並び替えの変更時に再計算できるよう、DB の全ノートを保持する
+    private var allNotes: List<Note> = emptyList()
+
     init {
         loadTags()
         loadNotes()
@@ -44,6 +47,7 @@ class NoteListViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 getNotesUseCase().collectLatest { notes ->
+                    allNotes = notes
                     _uiState.value = _uiState.value.copy(
                         notes = filterAndSort(notes),
                         isLoading = false
@@ -60,6 +64,7 @@ class NoteListViewModel @Inject constructor(
 
     fun onSearchQueryChanged(query: String) {
         _uiState.value = _uiState.value.copy(searchQuery = query)
+        refreshNotes()
     }
 
     fun onTagFilterChanged(tagId: Long, isSelected: Boolean) {
@@ -69,15 +74,18 @@ class NoteListViewModel @Inject constructor(
             _uiState.value.selectedTagIds - tagId
         }
         _uiState.value = _uiState.value.copy(selectedTagIds = newTags)
+        refreshNotes()
     }
 
     fun onSortChanged(sortOption: SortOption) {
         _uiState.value = _uiState.value.copy(sortBy = sortOption)
+        refreshNotes()
     }
 
     fun onDeleteNote(noteId: Long) {
         viewModelScope.launch {
             deleteNoteUseCase(noteId).onSuccess {
+                allNotes = allNotes.filter { it.id != noteId }
                 _uiState.value = _uiState.value.copy(
                     notes = _uiState.value.notes.filter { it.id != noteId }
                 )
@@ -87,6 +95,10 @@ class NoteListViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private fun refreshNotes() {
+        _uiState.value = _uiState.value.copy(notes = filterAndSort(allNotes))
     }
 
     private fun filterAndSort(notes: List<Note>): List<Note> {

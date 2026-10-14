@@ -3,16 +3,21 @@ package com.example.noteweaveapp.presentation.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.noteweaveapp.domain.usecase.AddTagsToNoteUseCase
 import com.example.noteweaveapp.domain.usecase.GenerateSummaryUseCase
 import com.example.noteweaveapp.domain.usecase.GenerateTagSuggestionsUseCase
 import com.example.noteweaveapp.domain.usecase.GetNotesUseCase
 import com.example.noteweaveapp.domain.usecase.GetRelatedNotesUseCase
 import com.example.noteweaveapp.presentation.state.AiProcessState
+import com.example.noteweaveapp.presentation.state.NoteDetailUiEvent
 import com.example.noteweaveapp.presentation.state.NoteDetailUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -23,6 +28,7 @@ class NoteDetailViewModel @Inject constructor(
     private val getRelatedNotesUseCase: GetRelatedNotesUseCase,
     private val generateSummaryUseCase: GenerateSummaryUseCase,
     private val generateTagSuggestionsUseCase: GenerateTagSuggestionsUseCase,
+    private val addTagsToNoteUseCase: AddTagsToNoteUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -30,6 +36,9 @@ class NoteDetailViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<NoteDetailUiState>(NoteDetailUiState.Loading)
     val uiState: StateFlow<NoteDetailUiState> = _uiState.asStateFlow()
+
+    private val _events = MutableSharedFlow<NoteDetailUiEvent>()
+    val events: SharedFlow<NoteDetailUiEvent> = _events.asSharedFlow()
 
     init {
         observeNote()
@@ -125,14 +134,20 @@ class NoteDetailViewModel @Inject constructor(
         }
     }
 
+    // 採用したタグはノートに追加する。失敗時は Snackbar で通知する
     fun onTagsAdopted(tags: List<String>) {
         val currentState = _uiState.value
         if (currentState !is NoteDetailUiState.Success) return
 
-        _uiState.value = currentState.copy(
-            aiTagsState = AiProcessState.Idle,
-            suggestedTags = emptyList()
-        )
+        viewModelScope.launch {
+            val result = addTagsToNoteUseCase(currentState.note.id, tags)
+            // 画面の反映は notes の監視で行われるため、ここでは AI 側の状態だけ更新する
+            val latest = _uiState.value as? NoteDetailUiState.Success ?: return@launch
+            _uiState.value = latest.copy(aiTagsState = AiProcessState.Idle, suggestedTags = emptyList())
+            result.onFailure { e ->
+                _events.emit(NoteDetailUiEvent.ShowMessage("Failed to save tags: ${e.message}"))
+            }
+        }
     }
 
     fun onTagsRejected() {
