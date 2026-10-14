@@ -10,11 +10,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
+import com.example.noteweaveapp.data.ai.LocalNoteAiProcessor
 import com.example.noteweaveapp.data.db.NoteWeaveDatabase
 import com.example.noteweaveapp.data.repository.NoteRepository
 import com.example.noteweaveapp.data.repository.TagRepository
 import com.example.noteweaveapp.domain.usecase.CreateNoteUseCase
 import com.example.noteweaveapp.domain.usecase.DeleteNoteUseCase
+import com.example.noteweaveapp.domain.usecase.GenerateSummaryUseCase
+import com.example.noteweaveapp.domain.usecase.GenerateTagSuggestionsUseCase
 import com.example.noteweaveapp.domain.usecase.GetNoteByIdUseCase
 import com.example.noteweaveapp.domain.usecase.GetNotesUseCase
 import com.example.noteweaveapp.domain.usecase.UpdateNoteUseCase
@@ -46,6 +49,9 @@ class MainActivity : ComponentActivity() {
                     val getNoteByIdUseCase = GetNoteByIdUseCase(noteRepository)
                     val getAllTagsUseCase = com.example.noteweaveapp.domain.usecase.GetAllTagsUseCase(tagRepository)
                     val getRelatedNotesUseCase = com.example.noteweaveapp.domain.usecase.GetRelatedNotesUseCase(noteRepository)
+                    val aiProcessor = LocalNoteAiProcessor()
+                    val generateSummaryUseCase = GenerateSummaryUseCase(aiProcessor)
+                    val generateTagSuggestionsUseCase = GenerateTagSuggestionsUseCase(aiProcessor)
 
                     val currentScreen = remember { mutableStateOf<Screen>(Screen.List) }
 
@@ -63,7 +69,7 @@ class MainActivity : ComponentActivity() {
                         }
                         is Screen.Detail -> {
                             NoteDetailScreen(
-                                viewModel = NoteDetailViewModel(getNoteByIdUseCase, getNotesUseCase, getRelatedNotesUseCase),
+                                viewModel = NoteDetailViewModel(getNoteByIdUseCase, getNotesUseCase, getRelatedNotesUseCase, generateSummaryUseCase, generateTagSuggestionsUseCase),
                                 noteId = screen.noteId,
                                 onBackClick = {
                                     currentScreen.value = Screen.List

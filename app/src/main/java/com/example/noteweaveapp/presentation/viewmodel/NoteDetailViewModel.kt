@@ -2,6 +2,8 @@ package com.example.noteweaveapp.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.noteweaveapp.domain.usecase.GenerateSummaryUseCase
+import com.example.noteweaveapp.domain.usecase.GenerateTagSuggestionsUseCase
 import com.example.noteweaveapp.domain.usecase.GetNoteByIdUseCase
 import com.example.noteweaveapp.domain.usecase.GetNotesUseCase
 import com.example.noteweaveapp.domain.usecase.GetRelatedNotesUseCase
@@ -16,7 +18,9 @@ import kotlinx.coroutines.launch
 class NoteDetailViewModel(
     private val getNoteByIdUseCase: GetNoteByIdUseCase,
     private val getNotesUseCase: GetNotesUseCase,
-    private val getRelatedNotesUseCase: GetRelatedNotesUseCase
+    private val getRelatedNotesUseCase: GetRelatedNotesUseCase,
+    private val generateSummaryUseCase: GenerateSummaryUseCase,
+    private val generateTagSuggestionsUseCase: GenerateTagSuggestionsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<NoteDetailUiState>(NoteDetailUiState.Loading)
@@ -48,25 +52,37 @@ class NoteDetailViewModel(
         val currentState = _uiState.value
         if (currentState !is NoteDetailUiState.Success) return
 
-        _uiState.value = currentState.copy(aiSummaryState = AiProcessState.Processing)
+        viewModelScope.launch {
+            _uiState.value = currentState.copy(aiSummaryState = AiProcessState.Processing)
+            try {
+                val summary = generateSummaryUseCase(currentState.note.content)
+                _uiState.value = ((_uiState.value as NoteDetailUiState.Success).copy(
+                    aiSummaryState = AiProcessState.Success(summary)
+                ))
+            } catch (e: Exception) {
+                _uiState.value = ((_uiState.value as NoteDetailUiState.Success).copy(
+                    aiSummaryState = AiProcessState.Error(e.message ?: "Unknown error")
+                ))
+            }
+        }
     }
 
-    fun onSummaryReceived(summary: String) {
+    fun onSummaryAdopted(summary: String) {
         val currentState = _uiState.value
         if (currentState !is NoteDetailUiState.Success) return
 
         _uiState.value = currentState.copy(
             aiSummary = summary,
-            aiSummaryState = AiProcessState.Success(summary)
+            aiSummaryState = AiProcessState.Idle
         )
     }
 
-    fun onSummaryError(error: String) {
+    fun onSummaryRejected() {
         val currentState = _uiState.value
         if (currentState !is NoteDetailUiState.Success) return
 
         _uiState.value = currentState.copy(
-            aiSummaryState = AiProcessState.Error(error)
+            aiSummaryState = AiProcessState.Idle
         )
     }
 
@@ -74,25 +90,42 @@ class NoteDetailViewModel(
         val currentState = _uiState.value
         if (currentState !is NoteDetailUiState.Success) return
 
-        _uiState.value = currentState.copy(aiTagsState = AiProcessState.Processing)
+        viewModelScope.launch {
+            _uiState.value = currentState.copy(aiTagsState = AiProcessState.Processing)
+            try {
+                val tags = generateTagSuggestionsUseCase(
+                    currentState.note.content,
+                    currentState.note.tags
+                )
+                _uiState.value = ((_uiState.value as NoteDetailUiState.Success).copy(
+                    suggestedTags = tags,
+                    aiTagsState = AiProcessState.Success(tags.joinToString(", "))
+                ))
+            } catch (e: Exception) {
+                _uiState.value = ((_uiState.value as NoteDetailUiState.Success).copy(
+                    aiTagsState = AiProcessState.Error(e.message ?: "Unknown error")
+                ))
+            }
+        }
     }
 
-    fun onTagsReceived(tags: List<String>) {
+    fun onTagsAdopted(tags: List<String>) {
         val currentState = _uiState.value
         if (currentState !is NoteDetailUiState.Success) return
 
         _uiState.value = currentState.copy(
-            suggestedTags = tags,
-            aiTagsState = AiProcessState.Success(tags.joinToString(", "))
+            aiTagsState = AiProcessState.Idle,
+            suggestedTags = emptyList()
         )
     }
 
-    fun onTagsError(error: String) {
+    fun onTagsRejected() {
         val currentState = _uiState.value
         if (currentState !is NoteDetailUiState.Success) return
 
         _uiState.value = currentState.copy(
-            aiTagsState = AiProcessState.Error(error)
+            aiTagsState = AiProcessState.Idle,
+            suggestedTags = emptyList()
         )
     }
 }
