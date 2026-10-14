@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+private const val MAX_TAG_LENGTH = 30
+
 @HiltViewModel
 class NoteEditViewModel @Inject constructor(
     private val createNoteUseCase: CreateNoteUseCase,
@@ -94,10 +96,10 @@ class NoteEditViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(content = content)
     }
 
-    // 新規タグは id が 0 のため、名前で重複と削除を判定する
+    // 新規タグは id が 0 のため、名前で重複と削除を判定する（大文字小文字は区別しない）
     fun onTagAdded(tag: Tag) {
         val currentTags = _uiState.value.tags
-        if (currentTags.none { it.name == tag.name }) {
+        if (currentTags.none { it.name.equals(tag.name, ignoreCase = true) }) {
             _uiState.value = _uiState.value.copy(tags = currentTags + tag)
         }
     }
@@ -111,7 +113,13 @@ class NoteEditViewModel @Inject constructor(
     fun onNewTagAdded(name: String) {
         val trimmed = Tag.trimmed(name)
         if (trimmed.isEmpty()) return
-        onTagAdded(Tag(name = trimmed))
+        if (trimmed.length > MAX_TAG_LENGTH) {
+            _uiState.value = _uiState.value.copy(error = "Tag must be $MAX_TAG_LENGTH characters or less")
+            return
+        }
+        // 既存タグと大文字小文字だけが違う場合は、既存タグを使う
+        val existing = _uiState.value.availableTags.firstOrNull { it.name.equals(trimmed, ignoreCase = true) }
+        onTagAdded(existing ?: Tag(name = trimmed))
     }
 
     fun onSave() {
