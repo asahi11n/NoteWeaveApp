@@ -1,5 +1,7 @@
 package com.example.noteweaveapp.presentation.ui.components
 
+import androidx.compose.ui.res.stringResource
+import com.example.noteweaveapp.R
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.RadioButton
@@ -16,9 +18,9 @@ fun SortOptionSelector(
 ) {
     Row(modifier = Modifier.padding(8.dp)) {
         listOf(
-            SortOption.UPDATED_DESC to "Newest",
-            SortOption.UPDATED_ASC to "Oldest",
-            SortOption.TITLE_ASC to "Title A-Z"
+            SortOption.UPDATED_DESC to stringResource(R.string.sort_newest),
+            SortOption.UPDATED_ASC to stringResource(R.string.sort_oldest),
+            SortOption.TITLE_ASC to stringResource(R.string.sort_title_asc)
         ).forEach { (option, label) ->
             Row(modifier = Modifier.padding(end = 16.dp)) {
                 RadioButton(

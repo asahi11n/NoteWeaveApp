@@ -10,7 +10,7 @@ data class NoteListUiState(
     val searchQuery: String = "",
     val sortBy: SortOption = SortOption.UPDATED_DESC,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: UiError? = null
 )
 
 enum class SortOption {

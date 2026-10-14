@@ -1,5 +1,7 @@
 package com.example.noteweaveapp.presentation.ui.components
 
+import androidx.compose.ui.res.stringResource
+import com.example.noteweaveapp.R
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,7 +28,7 @@ fun TagSelectorDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Select Tags") },
+        title = { Text(stringResource(R.string.select_tags)) },
         text = {
             LazyColumn(modifier = Modifier.fillMaxWidth()) {
                 items(tags) { tag ->
@@ -52,12 +54,12 @@ fun TagSelectorDialog(
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("OK")
+                Text(stringResource(R.string.ok))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

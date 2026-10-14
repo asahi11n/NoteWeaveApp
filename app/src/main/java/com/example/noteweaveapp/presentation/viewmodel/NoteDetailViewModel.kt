@@ -9,8 +9,10 @@ import com.example.noteweaveapp.domain.usecase.GenerateTagSuggestionsUseCase
 import com.example.noteweaveapp.domain.usecase.GetNotesUseCase
 import com.example.noteweaveapp.domain.usecase.GetRelatedNotesUseCase
 import com.example.noteweaveapp.presentation.state.AiProcessState
+import com.example.noteweaveapp.presentation.state.FailedAction
 import com.example.noteweaveapp.presentation.state.NoteDetailUiEvent
 import com.example.noteweaveapp.presentation.state.NoteDetailUiState
+import com.example.noteweaveapp.presentation.state.UiError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -51,7 +53,7 @@ class NoteDetailViewModel @Inject constructor(
                 getNotesUseCase().collectLatest { allNotes ->
                     val note = allNotes.find { it.id == noteId }
                     if (note == null) {
-                        _uiState.value = NoteDetailUiState.Error("Note not found")
+                        _uiState.value = NoteDetailUiState.Error(UiError.NoteNotFound)
                         return@collectLatest
                     }
                     val relatedNotes = getRelatedNotesUseCase(noteId, allNotes)
@@ -68,7 +70,7 @@ class NoteDetailViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                _uiState.value = NoteDetailUiState.Error("Failed to load note: ${e.message}")
+                _uiState.value = NoteDetailUiState.Error(UiError.Failed(FailedAction.LOAD_NOTE, e.message))
             }
         }
     }
@@ -86,7 +88,7 @@ class NoteDetailViewModel @Inject constructor(
                 ))
             } catch (e: Exception) {
                 _uiState.value = ((_uiState.value as NoteDetailUiState.Success).copy(
-                    aiSummaryState = AiProcessState.Error(e.message ?: "Unknown error")
+                    aiSummaryState = AiProcessState.Error(UiError.Failed(FailedAction.GENERATE_SUMMARY, e.message))
                 ))
             }
         }
@@ -128,7 +130,7 @@ class NoteDetailViewModel @Inject constructor(
                 ))
             } catch (e: Exception) {
                 _uiState.value = ((_uiState.value as NoteDetailUiState.Success).copy(
-                    aiTagsState = AiProcessState.Error(e.message ?: "Unknown error")
+                    aiTagsState = AiProcessState.Error(UiError.Failed(FailedAction.GENERATE_TAGS, e.message))
                 ))
             }
         }
@@ -145,7 +147,7 @@ class NoteDetailViewModel @Inject constructor(
             val latest = _uiState.value as? NoteDetailUiState.Success ?: return@launch
             _uiState.value = latest.copy(aiTagsState = AiProcessState.Idle, suggestedTags = emptyList())
             result.onFailure { e ->
-                _events.emit(NoteDetailUiEvent.ShowMessage("Failed to save tags: ${e.message}"))
+                _events.emit(NoteDetailUiEvent.ShowError(UiError.Failed(FailedAction.SAVE_TAGS, e.message)))
             }
         }
     }

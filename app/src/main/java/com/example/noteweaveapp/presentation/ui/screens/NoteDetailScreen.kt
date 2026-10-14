@@ -1,5 +1,9 @@
 package com.example.noteweaveapp.presentation.ui.screens
 
+import androidx.compose.ui.res.stringResource
+import com.example.noteweaveapp.R
+import androidx.compose.ui.platform.LocalContext
+import com.example.noteweaveapp.presentation.ui.toMessage
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,11 +50,12 @@ fun NoteDetailScreen(
     var showSummaryDialog by remember { mutableStateOf(false) }
     var showTagsDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
-                is NoteDetailUiEvent.ShowMessage -> snackbarHostState.showSnackbar(event.message)
+                is NoteDetailUiEvent.ShowError -> snackbarHostState.showSnackbar(event.error.toMessage(context))
             }
         }
     }
@@ -90,10 +95,10 @@ fun NoteDetailScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Note Detail") },
+                title = { Text(stringResource(R.string.note_detail)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_desc_back))
                     }
                 }
             )
@@ -113,7 +118,7 @@ fun NoteDetailScreen(
                 }
                 is NoteDetailUiState.Error -> {
                     Text(
-                        text = state.message,
+                        text = state.error.toMessage(context),
                         color = androidx.compose.material3.MaterialTheme.colorScheme.error
                     )
                 }
@@ -135,7 +140,10 @@ fun NoteDetailScreen(
 
                         if (state.note.tags.isNotEmpty()) {
                             Text(
-                                text = "Tags: ${state.note.tags.joinToString(", ") { it.name }}",
+                                text = stringResource(
+                                    R.string.note_tags_label,
+                                    state.note.tags.joinToString(", ") { it.name }
+                                ),
                                 modifier = Modifier.padding(top = 16.dp),
                                 style = androidx.compose.material3.MaterialTheme.typography.labelMedium
                             )
@@ -143,7 +151,7 @@ fun NoteDetailScreen(
 
                         if (state.relatedNotes.isNotEmpty()) {
                             Text(
-                                text = "Related Notes",
+                                text = stringResource(R.string.related_notes),
                                 modifier = Modifier.padding(top = 24.dp),
                                 style = androidx.compose.material3.MaterialTheme.typography.titleMedium
                             )
@@ -176,19 +184,19 @@ fun NoteDetailScreen(
                             horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
                         ) {
                             Button(onClick = { onEditClick(state.note.id) }) {
-                                Text("Edit")
+                                Text(stringResource(R.string.edit))
                             }
                             Button(onClick = {
                                 viewModel.onSummaryGenerate()
                                 showSummaryDialog = true
                             }) {
-                                Text("Summary")
+                                Text(stringResource(R.string.summary))
                             }
                             Button(onClick = {
                                 viewModel.onTagsGenerate()
                                 showTagsDialog = true
                             }) {
-                                Text("Tags")
+                                Text(stringResource(R.string.tags_label))
                             }
                         }
                     }

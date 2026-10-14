@@ -1,5 +1,9 @@
 package com.example.noteweaveapp.presentation.ui.screens
 
+import androidx.compose.ui.res.stringResource
+import com.example.noteweaveapp.R
+import androidx.compose.ui.platform.LocalContext
+import com.example.noteweaveapp.presentation.ui.toMessage
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,6 +47,7 @@ fun NoteListScreen(
     onCreateNote: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
     var showTagDialog by remember { mutableStateOf(false) }
 
     if (showTagDialog) {
@@ -59,11 +64,11 @@ fun NoteListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("NoteWeave") })
+            TopAppBar(title = { Text(stringResource(R.string.app_title)) })
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onCreateNote) {
-                Icon(Icons.Default.Add, contentDescription = "Create note")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.content_desc_create_note))
             }
         }
     ) { paddingValues ->
@@ -76,7 +81,7 @@ fun NoteListScreen(
             TextField(
                 value = uiState.searchQuery,
                 onValueChange = { viewModel.onSearchQueryChanged(it) },
-                label = { Text("Search") },
+                label = { Text(stringResource(R.string.search_label)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -90,7 +95,7 @@ fun NoteListScreen(
                     onClick = { showTagDialog = true },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Tags (${uiState.selectedTagIds.size})")
+                    Text(stringResource(R.string.tags_filter_button, uiState.selectedTagIds.size))
                 }
             }
 
@@ -105,13 +110,13 @@ fun NoteListScreen(
                 )
             } else if (uiState.error != null) {
                 Text(
-                    text = uiState.error!!,
+                    text = uiState.error!!.toMessage(context),
                     color = androidx.compose.material3.MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(top = 16.dp)
                 )
             } else if (uiState.notes.isEmpty()) {
                 Text(
-                    text = "No notes yet. Create one!",
+                    text = stringResource(R.string.empty_notes),
                     modifier = Modifier.padding(top = 16.dp)
                 )
             } else {
@@ -175,7 +180,7 @@ fun NoteListItem(
                     }
                     if (note.tags.size > 3) {
                         Text(
-                            "+${note.tags.size - 3}",
+                            stringResource(R.string.more_tags, note.tags.size - 3),
                             style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
                             modifier = Modifier
                                 .align(androidx.compose.ui.Alignment.CenterVertically)
@@ -192,7 +197,7 @@ fun NoteListItem(
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
             ) {
                 androidx.compose.material3.TextButton(onClick = onDelete, modifier = Modifier.height(32.dp)) {
-                    Text("Delete", style = androidx.compose.material3.MaterialTheme.typography.labelSmall)
+                    Text(stringResource(R.string.delete), style = androidx.compose.material3.MaterialTheme.typography.labelSmall)
                 }
             }
         }
