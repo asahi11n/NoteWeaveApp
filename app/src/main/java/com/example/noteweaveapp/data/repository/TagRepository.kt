@@ -1,12 +1,13 @@
 package com.example.noteweaveapp.data.repository
 
+import javax.inject.Inject
 import com.example.noteweaveapp.data.db.dao.TagDao
 import com.example.noteweaveapp.data.db.entity.TagEntity
 import com.example.noteweaveapp.domain.model.Tag
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class TagRepository(private val tagDao: TagDao) {
+class TagRepository @Inject constructor(private val tagDao: TagDao) {
     fun getAllTagsFlow(): Flow<List<Tag>> =
         tagDao.getAllTagsFlow().map { tagEntities ->
             tagEntities.map { Tag(it.id, it.name) }

@@ -1,12 +1,13 @@
 package com.example.noteweaveapp.domain.usecase
 
+import javax.inject.Inject
 import com.example.noteweaveapp.data.repository.NoteRepository
 import com.example.noteweaveapp.data.repository.TagRepository
 import com.example.noteweaveapp.domain.model.Note
 import com.example.noteweaveapp.util.validation.NoteValidator
 import com.example.noteweaveapp.util.validation.ValidationResult
 
-class UpdateNoteUseCase(
+class UpdateNoteUseCase @Inject constructor(
     private val noteRepository: NoteRepository,
     private val tagRepository: TagRepository
 ) {
