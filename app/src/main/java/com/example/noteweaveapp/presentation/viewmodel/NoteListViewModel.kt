@@ -1,0 +1,103 @@
+package com.example.noteweaveapp.presentation.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.noteweaveapp.domain.model.Note
+import com.example.noteweaveapp.domain.usecase.DeleteNoteUseCase
+import com.example.noteweaveapp.domain.usecase.GetNotesUseCase
+import com.example.noteweaveapp.presentation.state.NoteListUiState
+import com.example.noteweaveapp.presentation.state.SortOption
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+
+class NoteListViewModel(
+    private val getNotesUseCase: GetNotesUseCase,
+    private val deleteNoteUseCase: DeleteNoteUseCase
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(NoteListUiState())
+    val uiState: StateFlow<NoteListUiState> = _uiState.asStateFlow()
+
+    init {
+        loadNotes()
+    }
+
+    private fun loadNotes() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            try {
+                getNotesUseCase().collectLatest { notes ->
+                    _uiState.value = _uiState.value.copy(
+                        notes = filterAndSort(notes),
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "Failed to load notes: ${e.message}"
+                )
+            }
+        }
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        _uiState.value = _uiState.value.copy(searchQuery = query)
+    }
+
+    fun onTagFilterChanged(tagId: Long, isSelected: Boolean) {
+        val newTags = if (isSelected) {
+            _uiState.value.selectedTagIds + tagId
+        } else {
+            _uiState.value.selectedTagIds - tagId
+        }
+        _uiState.value = _uiState.value.copy(selectedTagIds = newTags)
+    }
+
+    fun onSortChanged(sortOption: SortOption) {
+        _uiState.value = _uiState.value.copy(sortBy = sortOption)
+    }
+
+    fun onDeleteNote(noteId: Long) {
+        viewModelScope.launch {
+            deleteNoteUseCase(noteId).onSuccess {
+                _uiState.value = _uiState.value.copy(
+                    notes = _uiState.value.notes.filter { it.id != noteId }
+                )
+            }.onFailure { e ->
+                _uiState.value = _uiState.value.copy(
+                    error = "Failed to delete note: ${e.message}"
+                )
+            }
+        }
+    }
+
+    private fun filterAndSort(notes: List<Note>): List<Note> {
+        val state = _uiState.value
+
+        var filtered = notes
+
+        if (state.searchQuery.isNotEmpty()) {
+            val query = state.searchQuery.lowercase()
+            filtered = filtered.filter { note ->
+                note.title.lowercase().contains(query) ||
+                note.content.lowercase().contains(query)
+            }
+        }
+
+        if (state.selectedTagIds.isNotEmpty()) {
+            filtered = filtered.filter { note ->
+                note.tags.any { it.id in state.selectedTagIds }
+            }
+        }
+
+        return when (state.sortBy) {
+            SortOption.UPDATED_DESC -> filtered.sortedByDescending { it.updatedAt }
+            SortOption.UPDATED_ASC -> filtered.sortedBy { it.updatedAt }
+            SortOption.TITLE_ASC -> filtered.sortedBy { it.title }
+        }
+    }
+}
