@@ -3,15 +3,20 @@ package com.example.noteweaveapp.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.noteweaveapp.domain.usecase.GetNoteByIdUseCase
+import com.example.noteweaveapp.domain.usecase.GetNotesUseCase
+import com.example.noteweaveapp.domain.usecase.GetRelatedNotesUseCase
 import com.example.noteweaveapp.presentation.state.AiProcessState
 import com.example.noteweaveapp.presentation.state.NoteDetailUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class NoteDetailViewModel(
-    private val getNoteByIdUseCase: GetNoteByIdUseCase
+    private val getNoteByIdUseCase: GetNoteByIdUseCase,
+    private val getNotesUseCase: GetNotesUseCase,
+    private val getRelatedNotesUseCase: GetRelatedNotesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<NoteDetailUiState>(NoteDetailUiState.Loading)
@@ -23,7 +28,13 @@ class NoteDetailViewModel(
             try {
                 val note = getNoteByIdUseCase(noteId)
                 if (note != null) {
-                    _uiState.value = NoteDetailUiState.Success(note = note)
+                    getNotesUseCase().collectLatest { allNotes ->
+                        val relatedNotes = getRelatedNotesUseCase(noteId, allNotes)
+                        _uiState.value = NoteDetailUiState.Success(
+                            note = note,
+                            relatedNotes = relatedNotes
+                        )
+                    }
                 } else {
                     _uiState.value = NoteDetailUiState.Error("Note not found")
                 }
