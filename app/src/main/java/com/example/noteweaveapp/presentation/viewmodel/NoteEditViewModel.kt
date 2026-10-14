@@ -94,17 +94,24 @@ class NoteEditViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(content = content)
     }
 
+    // 新規タグは id が 0 のため、名前で重複と削除を判定する
     fun onTagAdded(tag: Tag) {
         val currentTags = _uiState.value.tags
-        if (!currentTags.any { it.id == tag.id }) {
+        if (currentTags.none { it.name == tag.name }) {
             _uiState.value = _uiState.value.copy(tags = currentTags + tag)
         }
     }
 
-    fun onTagRemoved(tagId: Long) {
+    fun onTagRemoved(tagName: String) {
         _uiState.value = _uiState.value.copy(
-            tags = _uiState.value.tags.filter { it.id != tagId }
+            tags = _uiState.value.tags.filter { it.name != tagName }
         )
+    }
+
+    fun onNewTagAdded(name: String) {
+        val trimmed = Tag.trimmed(name)
+        if (trimmed.isEmpty()) return
+        onTagAdded(Tag(name = trimmed))
     }
 
     fun onSave() {

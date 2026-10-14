@@ -7,6 +7,7 @@ import com.example.noteweaveapp.domain.usecase.GenerateSummaryUseCase
 import com.example.noteweaveapp.domain.usecase.GenerateTagSuggestionsUseCase
 import com.example.noteweaveapp.domain.usecase.GetNotesUseCase
 import com.example.noteweaveapp.domain.usecase.GetRelatedNotesUseCase
+import com.example.noteweaveapp.domain.usecase.UpdateNoteUseCase
 import com.example.noteweaveapp.presentation.state.AiProcessState
 import com.example.noteweaveapp.presentation.state.NoteDetailUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,6 +24,7 @@ class NoteDetailViewModel @Inject constructor(
     private val getRelatedNotesUseCase: GetRelatedNotesUseCase,
     private val generateSummaryUseCase: GenerateSummaryUseCase,
     private val generateTagSuggestionsUseCase: GenerateTagSuggestionsUseCase,
+    private val updateNoteUseCase: UpdateNoteUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -125,14 +127,31 @@ class NoteDetailViewModel @Inject constructor(
         }
     }
 
+    // 採用したタグはノートに保存し、既存のタグは残す
     fun onTagsAdopted(tags: List<String>) {
         val currentState = _uiState.value
         if (currentState !is NoteDetailUiState.Success) return
 
-        _uiState.value = currentState.copy(
-            aiTagsState = AiProcessState.Idle,
-            suggestedTags = emptyList()
-        )
+        viewModelScope.launch {
+            val note = currentState.note
+            val tagNames = (note.tags.map { it.name } + tags).distinct()
+            val result = updateNoteUseCase(
+                noteId = note.id,
+                title = note.title,
+                content = note.content,
+                tagNames = tagNames
+            )
+            // 画面の反映は notes の監視で行われるため、ここでは AI 側の状態だけ更新する
+            val latest = _uiState.value as? NoteDetailUiState.Success ?: return@launch
+            _uiState.value = result.fold(
+                onSuccess = {
+                    latest.copy(aiTagsState = AiProcessState.Idle, suggestedTags = emptyList())
+                },
+                onFailure = { e ->
+                    latest.copy(aiTagsState = AiProcessState.Error("Failed to save tags: ${e.message}"))
+                }
+            )
+        }
     }
 
     fun onTagsRejected() {

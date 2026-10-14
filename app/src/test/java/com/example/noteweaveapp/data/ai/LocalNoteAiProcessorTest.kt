@@ -3,7 +3,6 @@ package com.example.noteweaveapp.data.ai
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotEmpty
 import kotlin.test.assertTrue
 
 class LocalNoteAiProcessorTest {
@@ -15,7 +14,7 @@ class LocalNoteAiProcessorTest {
         val text = "Android is great。Kotlin is awesome。Compose is modern。"
         val summary = processor.summarize(text)
 
-        assertNotEmpty(summary)
+        assertTrue(summary.isNotEmpty())
         assertTrue(summary.contains("Android"))
     }
 
@@ -39,7 +38,7 @@ class LocalNoteAiProcessorTest {
         val text = "This is about Android development and Kotlin programming"
         val tags = processor.suggestTags(text, emptyList())
 
-        assertNotEmpty(tags)
+        assertTrue(tags.isNotEmpty())
         assertTrue(tags.contains("Android") || tags.contains("Kotlin"))
     }
 
