@@ -1,5 +1,9 @@
 package com.example.noteweaveapp.presentation.ui.screens
 
+import androidx.compose.ui.res.stringResource
+import com.example.noteweaveapp.R
+import androidx.compose.ui.platform.LocalContext
+import com.example.noteweaveapp.presentation.ui.toMessage
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,6 +48,7 @@ fun NoteEditScreen(
     onSaved: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -56,10 +61,10 @@ fun NoteEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (noteId == 0L) "Create Note" else "Edit Note") },
+                title = { Text(if (noteId == 0L) stringResource(R.string.create_note) else stringResource(R.string.edit_note)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_desc_back))
                     }
                 }
             )
@@ -80,7 +85,7 @@ fun NoteEditScreen(
                 androidx.compose.material3.OutlinedTextField(
                     value = uiState.title,
                     onValueChange = { viewModel.onTitleChanged(it) },
-                    label = { Text("Title") },
+                    label = { Text(stringResource(R.string.title_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -88,7 +93,7 @@ fun NoteEditScreen(
                 androidx.compose.material3.OutlinedTextField(
                     value = uiState.content,
                     onValueChange = { viewModel.onContentChanged(it) },
-                    label = { Text("Content") },
+                    label = { Text(stringResource(R.string.content_label)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp),
@@ -96,7 +101,7 @@ fun NoteEditScreen(
                 )
 
                 Text(
-                    text = "Tags",
+                    text = stringResource(R.string.tags_label),
                     style = androidx.compose.material3.MaterialTheme.typography.titleSmall,
                     modifier = Modifier.padding(top = 16.dp)
                 )
@@ -135,7 +140,7 @@ fun NoteEditScreen(
                     androidx.compose.material3.OutlinedTextField(
                         value = newTagName,
                         onValueChange = { newTagName = it },
-                        label = { Text("New tag") },
+                        label = { Text(stringResource(R.string.new_tag_label)) },
                         modifier = Modifier.weight(1f),
                         singleLine = true
                     )
@@ -147,13 +152,13 @@ fun NoteEditScreen(
                         enabled = newTagName.isNotBlank(),
                         modifier = Modifier.padding(start = 8.dp)
                     ) {
-                        Text("Add")
+                        Text(stringResource(R.string.add))
                     }
                 }
 
                 if (uiState.error != null) {
                     Text(
-                        text = uiState.error!!,
+                        text = uiState.error!!.toMessage(context),
                         color = androidx.compose.material3.MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(top = 16.dp)
                     )
@@ -169,7 +174,7 @@ fun NoteEditScreen(
                     if (uiState.isSaving) {
                         CircularProgressIndicator(modifier = Modifier.padding(4.dp))
                     } else {
-                        Text("Save")
+                        Text(stringResource(R.string.save))
                     }
                 }
 

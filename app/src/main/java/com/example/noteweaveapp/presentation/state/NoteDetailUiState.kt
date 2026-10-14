@@ -12,12 +12,12 @@ sealed class NoteDetailUiState {
         val aiTagsState: AiProcessState = AiProcessState.Idle,
         val suggestedTags: List<String> = emptyList()
     ) : NoteDetailUiState()
-    data class Error(val message: String) : NoteDetailUiState()
+    data class Error(val error: UiError) : NoteDetailUiState()
 }
 
 sealed class AiProcessState {
     object Idle : AiProcessState()
     object Processing : AiProcessState()
     data class Success(val result: String) : AiProcessState()
-    data class Error(val message: String) : AiProcessState()
+    data class Error(val error: UiError) : AiProcessState()
 }

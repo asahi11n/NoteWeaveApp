@@ -5,6 +5,8 @@ data class Tag(
     val name: String
 ) {
     companion object {
+        const val MAX_LENGTH = 30
+
         fun trimmed(name: String): String = name.trim()
     }
 }

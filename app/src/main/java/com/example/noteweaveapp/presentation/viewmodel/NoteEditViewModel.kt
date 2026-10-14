@@ -9,7 +9,9 @@ import com.example.noteweaveapp.domain.usecase.GetAllTagsUseCase
 import com.example.noteweaveapp.domain.usecase.GetNoteByIdUseCase
 import com.example.noteweaveapp.domain.usecase.UpdateNoteUseCase
 import com.example.noteweaveapp.presentation.state.NoteEditUiEvent
+import com.example.noteweaveapp.presentation.state.FailedAction
 import com.example.noteweaveapp.presentation.state.NoteEditUiState
+import com.example.noteweaveapp.presentation.state.UiError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,8 +22,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-
-private const val MAX_TAG_LENGTH = 30
 
 @HiltViewModel
 class NoteEditViewModel @Inject constructor(
@@ -54,7 +54,7 @@ class NoteEditViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(availableTags = tags)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    error = "Failed to load tags: ${e.message}"
+                    error = UiError.Failed(FailedAction.LOAD_TAGS, e.message)
                 )
             }
         }
@@ -76,13 +76,13 @@ class NoteEditViewModel @Inject constructor(
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = "Note not found"
+                        error = UiError.NoteNotFound
                     )
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Failed to load note: ${e.message}"
+                    error = UiError.Failed(FailedAction.LOAD_NOTE, e.message)
                 )
             }
         }
@@ -113,8 +113,8 @@ class NoteEditViewModel @Inject constructor(
     fun onNewTagAdded(name: String) {
         val trimmed = Tag.trimmed(name)
         if (trimmed.isEmpty()) return
-        if (trimmed.length > MAX_TAG_LENGTH) {
-            _uiState.value = _uiState.value.copy(error = "Tag must be $MAX_TAG_LENGTH characters or less")
+        if (trimmed.length > Tag.MAX_LENGTH) {
+            _uiState.value = _uiState.value.copy(error = UiError.TagTooLong())
             return
         }
         // 既存タグと大文字小文字だけが違う場合は、既存タグを使う
@@ -151,7 +151,7 @@ class NoteEditViewModel @Inject constructor(
             }.onFailure { e ->
                 _uiState.value = _uiState.value.copy(
                     isSaving = false,
-                    error = "Failed to save note: ${e.message}"
+                    error = UiError.Failed(FailedAction.SAVE_NOTE, e.message)
                 )
             }
         }

@@ -10,5 +10,5 @@ data class NoteEditUiState(
     val availableTags: List<Tag> = emptyList(),
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
-    val error: String? = null
+    val error: UiError? = null
 )

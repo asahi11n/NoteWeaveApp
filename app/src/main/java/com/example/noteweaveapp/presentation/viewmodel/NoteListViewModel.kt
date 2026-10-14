@@ -6,8 +6,10 @@ import com.example.noteweaveapp.domain.model.Note
 import com.example.noteweaveapp.domain.usecase.DeleteNoteUseCase
 import com.example.noteweaveapp.domain.usecase.GetAllTagsUseCase
 import com.example.noteweaveapp.domain.usecase.GetNotesUseCase
+import com.example.noteweaveapp.presentation.state.FailedAction
 import com.example.noteweaveapp.presentation.state.NoteListUiState
 import com.example.noteweaveapp.presentation.state.SortOption
+import com.example.noteweaveapp.presentation.state.UiError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,7 +58,7 @@ class NoteListViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Failed to load notes: ${e.message}"
+                    error = UiError.Failed(FailedAction.LOAD_NOTES, e.message)
                 )
             }
         }
@@ -91,7 +93,7 @@ class NoteListViewModel @Inject constructor(
                 )
             }.onFailure { e ->
                 _uiState.value = _uiState.value.copy(
-                    error = "Failed to delete note: ${e.message}"
+                    error = UiError.Failed(FailedAction.DELETE_NOTE, e.message)
                 )
             }
         }

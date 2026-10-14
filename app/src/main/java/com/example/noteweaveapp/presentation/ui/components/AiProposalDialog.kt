@@ -1,5 +1,9 @@
 package com.example.noteweaveapp.presentation.ui.components
 
+import androidx.compose.ui.res.stringResource
+import com.example.noteweaveapp.R
+import androidx.compose.ui.platform.LocalContext
+import com.example.noteweaveapp.presentation.ui.toMessage
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,27 +33,27 @@ fun AiSummaryProposalDialog(
         is AiProcessState.Processing -> {
             AlertDialog(
                 onDismissRequest = onCancel,
-                title = { Text("Generating Summary...") },
+                title = { Text(stringResource(R.string.generating_summary)) },
                 text = { CircularProgressIndicator() },
                 confirmButton = {},
                 dismissButton = {
-                    TextButton(onClick = onCancel) { Text("Cancel") }
+                    TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }
                 }
             )
         }
         is AiProcessState.Success -> {
             AlertDialog(
                 onDismissRequest = onCancel,
-                title = { Text("Summary Proposal") },
+                title = { Text(stringResource(R.string.summary_proposal)) },
                 text = { Text(state.result) },
                 confirmButton = {
                     Button(onClick = { onConfirm(state.result) }) {
-                        Text("Adopt")
+                        Text(stringResource(R.string.adopt))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = onCancel) {
-                        Text("Reject")
+                        Text(stringResource(R.string.reject))
                     }
                 }
             )
@@ -57,16 +61,16 @@ fun AiSummaryProposalDialog(
         is AiProcessState.Error -> {
             AlertDialog(
                 onDismissRequest = onCancel,
-                title = { Text("Error") },
-                text = { Text(state.message) },
+                title = { Text(stringResource(R.string.error_title)) },
+                text = { Text(state.error.toMessage(LocalContext.current)) },
                 confirmButton = {
                     Button(onClick = onRetry) {
-                        Text("Retry")
+                        Text(stringResource(R.string.retry))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = onCancel) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )
@@ -89,18 +93,18 @@ fun AiTagsProposalDialog(
         is AiProcessState.Processing -> {
             AlertDialog(
                 onDismissRequest = onCancel,
-                title = { Text("Generating Tag Suggestions...") },
+                title = { Text(stringResource(R.string.generating_tags)) },
                 text = { CircularProgressIndicator() },
                 confirmButton = {},
                 dismissButton = {
-                    TextButton(onClick = onCancel) { Text("Cancel") }
+                    TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }
                 }
             )
         }
         is AiProcessState.Success -> {
             AlertDialog(
                 onDismissRequest = onCancel,
-                title = { Text("Tag Suggestions") },
+                title = { Text(stringResource(R.string.tag_suggestions)) },
                 text = {
                     Column {
                         suggestedTags.forEach { tag ->
@@ -127,12 +131,12 @@ fun AiTagsProposalDialog(
                 },
                 confirmButton = {
                     Button(onClick = { onConfirm(selectedTags.value.toList()) }) {
-                        Text("Adopt")
+                        Text(stringResource(R.string.adopt))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = onCancel) {
-                        Text("Reject")
+                        Text(stringResource(R.string.reject))
                     }
                 }
             )
@@ -140,16 +144,16 @@ fun AiTagsProposalDialog(
         is AiProcessState.Error -> {
             AlertDialog(
                 onDismissRequest = onCancel,
-                title = { Text("Error") },
-                text = { Text(state.message) },
+                title = { Text(stringResource(R.string.error_title)) },
+                text = { Text(state.error.toMessage(LocalContext.current)) },
                 confirmButton = {
                     Button(onClick = onRetry) {
-                        Text("Retry")
+                        Text(stringResource(R.string.retry))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = onCancel) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )
