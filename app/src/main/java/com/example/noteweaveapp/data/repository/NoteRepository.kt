@@ -1,5 +1,6 @@
 package com.example.noteweaveapp.data.repository
 
+import javax.inject.Inject
 import com.example.noteweaveapp.data.db.dao.NoteDao
 import com.example.noteweaveapp.data.db.entity.NoteEntity
 import com.example.noteweaveapp.data.db.entity.NoteTagCrossRef
@@ -8,7 +9,7 @@ import com.example.noteweaveapp.domain.model.Tag
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class NoteRepository(private val noteDao: NoteDao) {
+class NoteRepository @Inject constructor(private val noteDao: NoteDao) {
     fun getAllNotesFlow(): Flow<List<Note>> =
         noteDao.getAllNotesWithTagsFlow().map { noteWithTagsList ->
             noteWithTagsList.map { noteWithTags ->

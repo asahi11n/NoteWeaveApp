@@ -1,8 +1,9 @@
 package com.example.noteweaveapp.data.ai
 
+import javax.inject.Inject
 import com.example.noteweaveapp.domain.ai.NoteAiProcessor
 
-class LocalNoteAiProcessor : NoteAiProcessor {
+class LocalNoteAiProcessor @Inject constructor() : NoteAiProcessor {
     override suspend fun summarize(text: String): String {
         if (text.isBlank()) {
             return ""

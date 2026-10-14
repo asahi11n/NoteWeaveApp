@@ -18,30 +18,37 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.noteweaveapp.presentation.state.NoteEditUiEvent
 import com.example.noteweaveapp.presentation.viewmodel.NoteEditViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteEditScreen(
     viewModel: NoteEditViewModel,
-    noteId: Long?,
-    onBackClick: () -> Unit
+    noteId: Long,
+    onBackClick: () -> Unit,
+    onSaved: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    if (noteId != null && noteId != 0L && uiState.id == 0L) {
-        viewModel.loadNoteForEdit(noteId)
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                NoteEditUiEvent.SaveCompleted -> onSaved()
+            }
+        }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (noteId == null || noteId == 0L) "Create Note" else "Edit Note") },
+                title = { Text(if (noteId == 0L) "Create Note" else "Edit Note") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -102,13 +109,6 @@ fun NoteEditScreen(
                     }
                 }
 
-                if (uiState.saveSuccess) {
-                    Text(
-                        text = "Note saved successfully!",
-                        color = androidx.compose.material3.MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
-                }
             }
         }
     }

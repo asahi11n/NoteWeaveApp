@@ -8,13 +8,16 @@ import com.example.noteweaveapp.domain.usecase.GetAllTagsUseCase
 import com.example.noteweaveapp.domain.usecase.GetNotesUseCase
 import com.example.noteweaveapp.presentation.state.NoteListUiState
 import com.example.noteweaveapp.presentation.state.SortOption
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class NoteListViewModel(
+@HiltViewModel
+class NoteListViewModel @Inject constructor(
     private val getNotesUseCase: GetNotesUseCase,
     private val deleteNoteUseCase: DeleteNoteUseCase,
     private val getAllTagsUseCase: GetAllTagsUseCase

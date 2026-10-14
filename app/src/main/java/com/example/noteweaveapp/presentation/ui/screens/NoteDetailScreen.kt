@@ -35,17 +35,12 @@ import com.example.noteweaveapp.presentation.viewmodel.NoteDetailViewModel
 @Composable
 fun NoteDetailScreen(
     viewModel: NoteDetailViewModel,
-    noteId: Long,
     onBackClick: () -> Unit,
     onEditClick: (Long) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showSummaryDialog by remember { mutableStateOf(false) }
     var showTagsDialog by remember { mutableStateOf(false) }
-
-    if (uiState is NoteDetailUiState.Loading) {
-        viewModel.loadNote(noteId)
-    }
 
     if (showSummaryDialog && uiState is NoteDetailUiState.Success) {
         AiSummaryProposalDialog(

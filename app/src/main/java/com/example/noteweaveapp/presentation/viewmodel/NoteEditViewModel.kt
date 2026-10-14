@@ -1,36 +1,54 @@
 package com.example.noteweaveapp.presentation.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.noteweaveapp.data.repository.TagRepository
 import com.example.noteweaveapp.domain.model.Tag
 import com.example.noteweaveapp.domain.usecase.CreateNoteUseCase
+import com.example.noteweaveapp.domain.usecase.GetAllTagsUseCase
 import com.example.noteweaveapp.domain.usecase.GetNoteByIdUseCase
 import com.example.noteweaveapp.domain.usecase.UpdateNoteUseCase
+import com.example.noteweaveapp.presentation.state.NoteEditUiEvent
 import com.example.noteweaveapp.presentation.state.NoteEditUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class NoteEditViewModel(
+@HiltViewModel
+class NoteEditViewModel @Inject constructor(
     private val createNoteUseCase: CreateNoteUseCase,
     private val updateNoteUseCase: UpdateNoteUseCase,
     private val getNoteByIdUseCase: GetNoteByIdUseCase,
-    private val tagRepository: TagRepository
+    private val getAllTagsUseCase: GetAllTagsUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NoteEditUiState())
     val uiState: StateFlow<NoteEditUiState> = _uiState.asStateFlow()
 
+    private val _events = MutableSharedFlow<NoteEditUiEvent>()
+    val events: SharedFlow<NoteEditUiEvent> = _events.asSharedFlow()
+
     init {
         loadAvailableTags()
+        // 0 は新規作成を表す（ナビゲーション引数の既定値）
+        val noteId = savedStateHandle.get<Long>("noteId") ?: 0L
+        if (noteId != 0L) {
+            loadNoteForEdit(noteId)
+        }
     }
 
     private fun loadAvailableTags() {
         viewModelScope.launch {
             try {
-                val tags = tagRepository.getAllTags()
+                val tags = getAllTagsUseCase().first()
                 _uiState.value = _uiState.value.copy(availableTags = tags)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -40,7 +58,7 @@ class NoteEditViewModel(
         }
     }
 
-    fun loadNoteForEdit(noteId: Long) {
+    private fun loadNoteForEdit(noteId: Long) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
@@ -91,7 +109,7 @@ class NoteEditViewModel(
 
     fun onSave() {
         val state = _uiState.value
-        _uiState.value = state.copy(isSaving = true, saveSuccess = false)
+        _uiState.value = state.copy(isSaving = true)
 
         viewModelScope.launch {
             val result = if (state.id == 0L) {
@@ -112,9 +130,9 @@ class NoteEditViewModel(
             result.onSuccess {
                 _uiState.value = _uiState.value.copy(
                     isSaving = false,
-                    saveSuccess = true,
                     error = null
                 )
+                _events.emit(NoteEditUiEvent.SaveCompleted)
             }.onFailure { e ->
                 _uiState.value = _uiState.value.copy(
                     isSaving = false,
