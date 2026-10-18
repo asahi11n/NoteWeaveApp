@@ -90,7 +90,13 @@ fun NoteWeaveNavHost(navController: NavHostController = rememberNavController())
             NoteDetailScreen(
                 viewModel = hiltViewModel(),
                 onBackClick = { navController.popBackStack() },
-                onEditClick = { noteId -> navController.navigate(NoteWeaveRoutes.edit(noteId)) }
+                onEditClick = { noteId -> navController.navigate(NoteWeaveRoutes.edit(noteId)) },
+                // 今の詳細画面を置き換えて開き、戻る履歴を増やさない
+                onRelatedNoteClick = { noteId ->
+                    navController.navigate(NoteWeaveRoutes.detail(noteId)) {
+                        popUpTo(NoteWeaveRoutes.DETAIL) { inclusive = true }
+                    }
+                }
             )
         }
 

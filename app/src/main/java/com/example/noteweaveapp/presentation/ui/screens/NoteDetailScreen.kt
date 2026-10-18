@@ -44,7 +44,8 @@ import com.example.noteweaveapp.presentation.viewmodel.NoteDetailViewModel
 fun NoteDetailScreen(
     viewModel: NoteDetailViewModel,
     onBackClick: () -> Unit,
-    onEditClick: (Long) -> Unit
+    onEditClick: (Long) -> Unit,
+    onRelatedNoteClick: (Long) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showSummaryDialog by remember { mutableStateOf(false) }
@@ -160,7 +161,7 @@ fun NoteDetailScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(top = 8.dp),
-                                    onClick = { onBackClick() }
+                                    onClick = { onRelatedNoteClick(relatedNote.id) }
                                 ) {
                                     Column(modifier = Modifier.padding(12.dp)) {
                                         Text(
