@@ -1,5 +1,6 @@
 package com.example.noteweaveapp.presentation.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.noteweaveapp.domain.model.Note
@@ -22,7 +23,8 @@ import kotlinx.coroutines.launch
 class NoteListViewModel @Inject constructor(
     private val getNotesUseCase: GetNotesUseCase,
     private val deleteNoteUseCase: DeleteNoteUseCase,
-    private val getAllTagsUseCase: GetAllTagsUseCase
+    private val getAllTagsUseCase: GetAllTagsUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NoteListUiState())
@@ -32,6 +34,10 @@ class NoteListViewModel @Inject constructor(
     private var allNotes: List<Note> = emptyList()
 
     init {
+        // タグ画面から開いた場合は、そのタグで絞り込んだ状態から始める（-1 は指定なし）
+        savedStateHandle.get<Long>("tagId")
+            ?.takeIf { it >= 0L }
+            ?.let { tagId -> _uiState.value = _uiState.value.copy(selectedTagIds = setOf(tagId)) }
         loadTags()
         loadNotes()
     }
@@ -76,6 +82,11 @@ class NoteListViewModel @Inject constructor(
             _uiState.value.selectedTagIds - tagId
         }
         _uiState.value = _uiState.value.copy(selectedTagIds = newTags)
+        refreshNotes()
+    }
+
+    fun onClearTagFilter() {
+        _uiState.value = _uiState.value.copy(selectedTagIds = emptySet())
         refreshNotes()
     }
 

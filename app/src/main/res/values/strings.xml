@@ -17,7 +17,9 @@
 
     <!-- Note list -->
     <string name="search_label">Search</string>
-    <string name="tags_filter_button">Tags (%1$d)</string>
+    <string name="search_placeholder">Search notes...</string>
+    <string name="section_recent_notes">Recent notes</string>
+    <string name="note_updated_at">Updated %1$s</string>
     <string name="empty_notes">No notes yet. Create one!</string>
     <string name="more_tags">+%1$d</string>
     <string name="sort_newest">Newest</string>
@@ -40,7 +42,6 @@
     <string name="new_tag_label">New tag</string>
 
     <!-- Tag selector -->
-    <string name="select_tags">Select Tags</string>
 
     <!-- AI proposal dialogs -->
     <string name="generating_summary">Generating Summary...</string>
@@ -59,4 +60,20 @@
     <string name="error_delete_note">Failed to delete note: %1$s</string>
     <string name="error_save_note">Failed to save note: %1$s</string>
     <string name="error_save_tags">Failed to save tags: %1$s</string>
+    <string name="error_create_tag">Failed to create tag: %1$s</string>
+    <string name="error_tag_exists">A tag with this name already exists</string>
+    <string name="error_tag_empty">Tag name cannot be empty</string>
+
+    <!-- Home and navigation -->
+    <string name="app_subtitle">Turn notes into connected knowledge.</string>
+    <string name="filter_all">All</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_tags">Tags</string>
+
+    <!-- Tag management -->
+    <string name="tags_title">Tags</string>
+    <string name="tags_empty">No tags yet. Tap + to add one.</string>
+    <string name="tag_note_count">%1$d notes</string>
+    <string name="content_desc_add_tag">Add tag</string>
+    <string name="new_tag_dialog_title">New tag</string>
 </resources>

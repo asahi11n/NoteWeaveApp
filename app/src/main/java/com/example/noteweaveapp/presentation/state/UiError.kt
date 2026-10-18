@@ -8,6 +8,10 @@ sealed interface UiError {
 
     data class TagTooLong(val maxLength: Int = Tag.MAX_LENGTH) : UiError
 
+    data object TagEmpty : UiError
+
+    data object TagExists : UiError
+
     // reason は例外のメッセージ（取得できない場合は null）
     data class Failed(val action: FailedAction, val reason: String? = null) : UiError
 }
@@ -20,5 +24,6 @@ enum class FailedAction {
     SAVE_NOTE,
     SAVE_TAGS,
     GENERATE_SUMMARY,
-    GENERATE_TAGS
+    GENERATE_TAGS,
+    CREATE_TAG
 }
